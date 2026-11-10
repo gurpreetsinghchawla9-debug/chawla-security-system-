@@ -1,377 +1,447 @@
 
-/* =====================================
-   CHAWLA SECURITY SYSTEM
-   Main JavaScript
-===================================== */
+const SUPABASE_URL = "https://gqefwgxiqwhrrtnjzkak.supabase.co";
 
-// 1. SUPABASE CONFIGURATION
-// Replace these two values after creating your Supabase project.
+const SUPABASE_ANON_KEY =
+  "sb_publishable_mEf7EL4FPOu3sHrbkL48fA_Q2fHCHS7";
 
-const SUPABASE_URL = "YOUR_SUPABASE_PROJECT_URL";
-const SUPABASE_ANON_KEY = "YOUR_SUPABASE_PUBLISHABLE_KEY";
-
-// WhatsApp booking destination: Manager
 const WHATSAPP_NUMBER = "916239750615";
 
-let db = null;
+// Connect Supabase
+const db = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
 
-if (
-  window.supabase &&
-  SUPABASE_URL.startsWith("https://") &&
-  SUPABASE_ANON_KEY !== "YOUR_SUPABASE_PUBLISHABLE_KEY"
-) {
-  db = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_ANON_KEY
-  );
-}
+// HTML elements
+const bookingForm = document.getElementById("bookingForm");
+const bookingStatus = document.getElementById("bookingStatus");
+const submitBooking = document.getElementById("submitBooking");
+
+const loginModal = document.getElementById("loginModal");
+const showAdminLogin = document.getElementById("showAdminLogin");
+const closeLogin = document.getElementById("closeLogin");
+
+const loginForm = document.getElementById("loginForm");
+const adminEmail = document.getElementById("adminEmail");
+const adminPassword = document.getElementById("adminPassword");
+const loginStatus = document.getElementById("loginStatus");
+
+const adminDashboard = document.getElementById("adminDashboard");
+const logoutButton = document.getElementById("logoutButton");
+
+const totalRequests = document.getElementById("totalRequests");
+const pendingRequests = document.getElementById("pendingRequests");
+const completedRequests = document.getElementById("completedRequests");
+
+const refreshRequests = document.getElementById("refreshRequests");
+const requestsList = document.getElementById("requestsList");
+const dashboardStatus = document.getElementById("dashboardStatus");
 
 
-// 2. HELPER FUNCTIONS
-
-function showMessage(elementId, message, isError = false) {
-  const element = document.getElementById(elementId);
+// Show messages
+function showMessage(element, message, type = "success") {
   if (!element) return;
 
   element.textContent = message;
-  element.style.color = isError ? "#c0392b" : "#16865a";
+  element.className = "status-message " + type;
 }
 
-function escapeText(value) {
-  return String(value ?? "");
-}
 
-function formatDate(value) {
-  return new Date(value).toLocaleString("en-IN", {
-    dateStyle: "medium",
-    timeStyle: "short"
+// Open admin login
+if (showAdminLogin) {
+  showAdminLogin.addEventListener("click", () => {
+    loginModal.style.display = "flex";
   });
 }
 
 
-// 3. SERVICE CARD SHORTCUTS
+// Close admin login
+if (closeLogin) {
+  closeLogin.addEventListener("click", () => {
+    loginModal.style.display = "none";
+  });
+}
 
-document.querySelectorAll("[data-service]").forEach(link => {
-  link.addEventListener("click", () => {
-    const service = link.dataset.service;
-    document.getElementById("serviceType").value = service;
+
+// Close modal when clicking outside
+if (loginModal) {
+  loginModal.addEventListener("click", (event) => {
+    if (event.target === loginModal) {
+      loginModal.style.display = "none";
+    }
+  });
+}
+
+
+// Service selection from service cards
+document.querySelectorAll("[data-service]").forEach((button) => {
+  button.addEventListener("click", () => {
+    const serviceType = button.dataset.service;
+    const serviceSelect = document.getElementById("serviceType");
+
+    if (serviceSelect) {
+      serviceSelect.value = serviceType;
+    }
+
+    bookingForm?.scrollIntoView({
+      behavior: "smooth"
+    });
   });
 });
 
 
-// 4. CUSTOMER BOOKING FORM
+// Customer booking submission
+if (bookingForm) {
+  bookingForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
 
-const bookingForm = document.getElementById("bookingForm");
+    if (submitBooking) {
+      submitBooking.disabled = true;
+      submitBooking.textContent = "Submitting...";
+    }
 
-bookingForm.addEventListener("submit", async event => {
-  event.preventDefault();
+    showMessage(bookingStatus, "Please wait, submitting your request...");
 
-  const submitButton = document.getElementById("submitBooking");
+    const customerName =
+      document.getElementById("customerName").value.trim();
 
-  const name = document.getElementById("customerName").value.trim();
-  const phone = document.getElementById("customerPhone").value.trim();
-  const address = document.getElementById("customerAddress").value.trim();
-  const service = document.getElementById("serviceType").value;
-  const message = document.getElementById("customerMessage").value.trim();
+    const customerPhone =
+      document.getElementById("customerPhone").value.trim();
 
-  if (!/^[0-9]{10}$/.test(phone)) {
-    showMessage("bookingStatus", "Please enter a valid 10-digit mobile number.", true);
-    return;
+    const customerAddress =
+      document.getElementById("customerAddress").value.trim();
+
+    const serviceType =
+      document.getElementById("serviceType").value;
+
+    const customerMessage =
+      document.getElementById("customerMessage").value.trim();
+
+    if (!/^[0-9]{10}$/.test(customerPhone)) {
+      showMessage(
+        bookingStatus,
+        "Please enter a valid 10-digit phone number.",
+        "error"
+      );
+
+      if (submitBooking) {
+        submitBooking.disabled = false;
+        submitBooking.textContent = "Submit Request";
+      }
+
+      return;
+    }
+
+    const bookingData = {
+      customer_name: customerName,
+      customer_phone: customerPhone,
+      customer_address: customerAddress,
+      service_type: serviceType,
+      customer_message: customerMessage
+    };
+
+    try {
+      const { data, error } = await db
+        .from("service_requests")
+        .insert([bookingData])
+        .select();
+
+      if (error) throw error;
+
+      showMessage(
+        bookingStatus,
+        "Your booking request has been submitted successfully!"
+      );
+
+      // WhatsApp booking message
+      const whatsappMessage =
+        `*NEW BOOKING - CHAWLA SECURITY SYSTEM*%0A%0A` +
+        `Customer: ${customerName}%0A` +
+        `Phone: ${customerPhone}%0A` +
+        `Address: ${customerAddress}%0A` +
+        `Service: ${serviceType}%0A` +
+        `Message: ${customerMessage || "No additional message"}`;
+
+      const whatsappURL =
+        `https://wa.me/${WHATSAPP_NUMBER}?text=${whatsappMessage}`;
+
+      window.open(whatsappURL, "_blank");
+
+      bookingForm.reset();
+
+    } catch (error) {
+      console.error("Booking error:", error);
+
+      showMessage(
+        bookingStatus,
+        "Booking failed. Please try again or contact us on WhatsApp.",
+        "error"
+      );
+
+    } finally {
+      if (submitBooking) {
+        submitBooking.disabled = false;
+        submitBooking.textContent = "Submit Request";
+      }
+    }
+  });
+}
+
+
+// Admin login
+if (loginForm) {
+  loginForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    showMessage(loginStatus, "Checking login details...");
+
+    const email = adminEmail.value.trim();
+    const password = adminPassword.value;
+
+    try {
+      const { data, error } = await db.auth.signInWithPassword({
+        email: email,
+        password: password
+      });
+
+      if (error) throw error;
+
+      showMessage(loginStatus, "Login successful!");
+
+      loginModal.style.display = "none";
+      loginForm.reset();
+
+      await showDashboard();
+
+    } catch (error) {
+      console.error("Login error:", error);
+
+      showMessage(
+        loginStatus,
+        "Invalid email or password. Please try again.",
+        "error"
+      );
+    }
+  });
+}
+
+
+// Show admin dashboard
+async function showDashboard() {
+  if (adminDashboard) {
+    adminDashboard.hidden = false;
+    adminDashboard.style.display = "block";
   }
 
-  if (!name || !address || !service) {
-    showMessage("bookingStatus", "Please complete all required fields.", true);
-    return;
+  await loadRequests();
+
+  adminDashboard?.scrollIntoView({
+    behavior: "smooth"
+  });
+}
+
+
+// Hide dashboard
+function hideDashboard() {
+  if (adminDashboard) {
+    adminDashboard.hidden = true;
+    adminDashboard.style.display = "none";
   }
+}
 
-  if (!db) {
-    showMessage(
-      "bookingStatus",
-      "Database is not connected yet. Please contact us directly on WhatsApp.",
-      true
-    );
 
-    const fallbackMessage =
-      `Hello Chawla Security System!\n\n` +
-      `Name: ${name}\nPhone: ${phone}\nAddress: ${address}\n` +
-      `Service: ${service}\nRequirements: ${message || "Not provided"}`;
+// Load customer booking requests
+async function loadRequests() {
+  if (!requestsList) return;
 
-    window.open(
-      `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(fallbackMessage)}`,
-      "_blank",
-      "noopener"
-    );
+  showMessage(dashboardStatus, "Loading customer requests...");
 
-    return;
-  }
-
-  submitButton.disabled = true;
-  submitButton.textContent = "Submitting...";
+  requestsList.replaceChildren();
 
   try {
-    // Save booking to Supabase database.
-    const { data, error } = await db
+    const { data: requests, error } = await db
       .from("service_requests")
-      .insert([{
-        customer_name: name,
-        customer_phone: phone,
-        customer_address: address,
-        service_type: service,
-        customer_message: message,
-        status: "Pending"
-      }])
-      .select("id")
-      .single();
+      .select("*")
+      .order("created_at", { ascending: false });
 
     if (error) throw error;
 
-    const bookingMessage =
-      `Hello Chawla Security System!\n\n` +
-      `My service request has been submitted.\n\n` +
-      `Booking ID: ${data.id}\n` +
-      `Name: ${name}\n` +
-      `Phone: ${phone}\n` +
-      `Address: ${address}\n` +
-      `Service: ${service}\n` +
-      `Requirements: ${message || "Not provided"}\n\n` +
-      `Please contact me regarding my booking.`;
+    const allRequests = requests || [];
 
-    showMessage(
-      "bookingStatus",
-      "Booking saved successfully! Opening WhatsApp..."
-    );
+    // Dashboard statistics
+    if (totalRequests) {
+      totalRequests.textContent = allRequests.length;
+    }
 
-    bookingForm.reset();
+    if (pendingRequests) {
+      pendingRequests.textContent =
+        allRequests.filter(r => r.status === "Pending").length;
+    }
 
-    // Customer sends the booking message through WhatsApp.
-    window.location.href =
-      `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(bookingMessage)}`;
+    if (completedRequests) {
+      completedRequests.textContent =
+        allRequests.filter(r => r.status === "Completed").length;
+    }
+
+    if (allRequests.length === 0) {
+      const emptyMessage = document.createElement("p");
+      emptyMessage.textContent = "No booking requests found yet.";
+      requestsList.appendChild(emptyMessage);
+
+      showMessage(dashboardStatus, "Dashboard is up to date.");
+      return;
+    }
+
+    // Display requests
+    allRequests.forEach((request) => {
+      const card = document.createElement("div");
+      card.className = "request-card";
+
+      const heading = document.createElement("h3");
+      heading.textContent = request.customer_name;
+
+      const phone = document.createElement("p");
+      phone.textContent = "Phone: " + request.customer_phone;
+
+      const address = document.createElement("p");
+      address.textContent = "Address: " + request.customer_address;
+
+      const service = document.createElement("p");
+      service.textContent = "Service: " + request.service_type;
+
+      const message = document.createElement("p");
+      message.textContent =
+        "Message: " + (request.customer_message || "No message");
+
+      const date = document.createElement("p");
+      date.textContent =
+        "Date: " + new Date(request.created_at).toLocaleString("en-IN");
+
+      const statusLabel = document.createElement("label");
+      statusLabel.textContent = "Booking Status: ";
+
+      const statusSelect = document.createElement("select");
+
+      ["Pending", "In Progress", "Completed"].forEach((status) => {
+        const option = document.createElement("option");
+        option.value = status;
+        option.textContent = status;
+        statusSelect.appendChild(option);
+      });
+
+      statusSelect.value = request.status;
+
+      const updateButton = document.createElement("button");
+      updateButton.type = "button";
+      updateButton.textContent = "Update Status";
+
+      updateButton.addEventListener("click", async () => {
+        updateButton.disabled = true;
+        updateButton.textContent = "Updating...";
+
+        try {
+          const { error } = await db
+            .from("service_requests")
+            .update({ status: statusSelect.value })
+            .eq("id", request.id);
+
+          if (error) throw error;
+
+          showMessage(
+            dashboardStatus,
+            "Booking status updated successfully!"
+          );
+
+          await loadRequests();
+
+        } catch (error) {
+          console.error("Status update error:", error);
+
+          showMessage(
+            dashboardStatus,
+            "Unable to update booking status.",
+            "error"
+          );
+
+          updateButton.disabled = false;
+          updateButton.textContent = "Update Status";
+        }
+      });
+
+      statusLabel.appendChild(statusSelect);
+
+      card.append(
+        heading,
+        phone,
+        address,
+        service,
+        message,
+        date,
+        statusLabel,
+        updateButton
+      );
+
+      requestsList.appendChild(card);
+    });
+
+    showMessage(dashboardStatus, "Dashboard is up to date.");
 
   } catch (error) {
-    console.error("Booking error:", error);
+    console.error("Dashboard error:", error);
 
     showMessage(
-      "bookingStatus",
-      "Booking could not be saved. Please try again or contact us directly.",
-      true
+      dashboardStatus,
+      "Unable to load requests. Please check your admin login.",
+      "error"
     );
-
-  } finally {
-    submitButton.disabled = false;
-    submitButton.textContent = "Submit Booking ↗";
   }
-});
-
-
-// 5. ADMIN LOGIN MODAL
-
-const loginModal = document.getElementById("loginModal");
-
-document.getElementById("showAdminLogin").addEventListener("click", () => {
-  loginModal.hidden = false;
-});
-
-document.getElementById("closeLogin").addEventListener("click", () => {
-  loginModal.hidden = true;
-});
-
-loginModal.addEventListener("click", event => {
-  if (event.target === loginModal) {
-    loginModal.hidden = true;
-  }
-});
-
-
-// 6. ADMIN LOGIN
-
-document.getElementById("loginForm").addEventListener("submit", async event => {
-  event.preventDefault();
-
-  if (!db) {
-    showMessage(
-      "loginStatus",
-      "Please connect Supabase first.",
-      true
-    );
-    return;
-  }
-
-  const email = document.getElementById("adminEmail").value.trim();
-  const password = document.getElementById("adminPassword").value;
-
-  showMessage("loginStatus", "Checking login...");
-
-  const { error } = await db.auth.signInWithPassword({
-    email,
-    password
-  });
-
-  if (error) {
-    showMessage("loginStatus", "Login failed. Check your email and password.", true);
-    return;
-  }
-
-  loginModal.hidden = true;
-  document.getElementById("adminDashboard").hidden = false;
-
-  await loadRequests();
-  document.getElementById("adminDashboard").scrollIntoView({
-    behavior: "smooth"
-  });
-});
-
-
-// 7. LOAD CUSTOMER REQUESTS
-
-async function loadRequests() {
-  if (!db) return;
-
-  showMessage("dashboardStatus", "Loading requests...");
-
-  const { data, error } = await db
-    .from("service_requests")
-    .select("*")
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    showMessage(
-      "dashboardStatus",
-      "Could not load requests. Check your database permissions.",
-      true
-    );
-    return;
-  }
-
-  const requests = data || [];
-
-  document.getElementById("totalRequests").textContent = requests.length;
-
-  document.getElementById("pendingRequests").textContent =
-    requests.filter(item => item.status === "Pending").length;
-
-  document.getElementById("completedRequests").textContent =
-    requests.filter(item => item.status === "Completed").length;
-
-  const list = document.getElementById("requestsList");
-  list.replaceChildren();
-
-  if (requests.length === 0) {
-    const empty = document.createElement("p");
-    empty.className = "empty-state";
-    empty.textContent = "No customer requests yet.";
-    list.appendChild(empty);
-  }
-
-  requests.forEach(request => {
-    const card = document.createElement("article");
-    card.className = "request-card";
-
-    const heading = document.createElement("h4");
-    heading.textContent = request.customer_name;
-
-    const details = document.createElement("div");
-
-    const fields = [
-      ["Booking ID", request.id],
-      ["Phone", request.customer_phone],
-      ["Address", request.customer_address],
-      ["Service", request.service_type],
-      ["Requirements", request.customer_message || "Not provided"],
-      ["Submitted", formatDate(request.created_at)]
-    ];
-
-    fields.forEach(([label, value]) => {
-      const p = document.createElement("p");
-      p.textContent = `${label}: ${escapeText(value)}`;
-      details.appendChild(p);
-    });
-
-    const status = document.createElement("p");
-    status.textContent = `Current Status: ${request.status}`;
-
-    const actions = document.createElement("div");
-    actions.className = "request-actions";
-
-    const select = document.createElement("select");
-
-    ["Pending", "In Progress", "Completed"].forEach(value => {
-      const option = document.createElement("option");
-      option.value = value;
-      option.textContent = value;
-      select.appendChild(option);
-    });
-
-    select.value = request.status;
-
-    const updateButton = document.createElement("button");
-    updateButton.className = "primary-btn";
-    updateButton.textContent = "Update Status";
-
-    updateButton.addEventListener("click", async () => {
-      updateButton.disabled = true;
-
-      const { error: updateError } = await db
-        .from("service_requests")
-        .update({ status: select.value })
-        .eq("id", request.id);
-
-      if (updateError) {
-        showMessage("dashboardStatus", "Could not update request status.", true);
-      } else {
-        showMessage("dashboardStatus", "Request status updated successfully.");
-        await loadRequests();
-      }
-    });
-
-    actions.append(select, updateButton);
-    card.append(heading, details, status, actions);
-    list.appendChild(card);
-  });
-
-  showMessage("dashboardStatus", `${requests.length} requests loaded.`);
 }
 
 
-// 8. REFRESH DASHBOARD
+// Refresh dashboard
+if (refreshRequests) {
+  refreshRequests.addEventListener("click", loadRequests);
+}
 
-document.getElementById("refreshRequests").addEventListener("click", loadRequests);
+
+// Admin logout
+if (logoutButton) {
+  logoutButton.addEventListener("click", async () => {
+    const { error } = await db.auth.signOut();
+
+    if (error) {
+      console.error("Logout error:", error);
+      showMessage(dashboardStatus, "Logout failed.", "error");
+      return;
+    }
+
+    hideDashboard();
+
+    showMessage(loginStatus, "You have logged out successfully.");
+  });
+}
 
 
-// 9. LOGOUT
-
-document.getElementById("logoutButton").addEventListener("click", async () => {
-  if (!db) return;
-
-  const { error } = await db.auth.signOut();
+// Restore admin session after page refresh
+async function restoreAdminSession() {
+  const { data, error } = await db.auth.getSession();
 
   if (error) {
-    showMessage("dashboardStatus", "Logout failed. Please try again.", true);
+    console.error("Session error:", error);
     return;
   }
-
-  document.getElementById("adminDashboard").hidden = true;
-  document.getElementById("loginForm").reset();
-  document.getElementById("adminPassword").value = "";
-  showMessage("loginStatus", "");
-  document.getElementById("admin").scrollIntoView({
-    behavior: "smooth"
-  });
-});
-
-
-// 10. RESTORE ADMIN SESSION ON PAGE RELOAD
-
-async function restoreAdminSession() {
-  if (!db) return;
-
-  const { data } = await db.auth.getSession();
 
   if (data.session) {
-    document.getElementById("adminDashboard").hidden = false;
-    await loadRequests();
+    await showDashboard();
+  } else {
+    hideDashboard();
   }
 }
 
-restoreAdminSession();
 
-console.log("Chawla Security System website loaded.");
+// Start website
+document.addEventListener("DOMContentLoaded", () => {
+  restoreAdminSession();
+});
+
+
