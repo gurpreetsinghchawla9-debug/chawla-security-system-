@@ -1,0 +1,301 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0b1930">
+
+  <title>Chawla Security System | CCTV Solutions</title>
+  <meta name="description" content="Professional CCTV camera installation, repair, wiring and maintenance services by Chawla Security System.">
+
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Supabase connection library -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+
+  <!-- NAVIGATION -->
+  <header class="navbar">
+    <a href="#" class="brand">
+      <span class="brand-icon">C</span>
+      <span>CHAWLA <small>SECURITY SYSTEM</small></span>
+    </a>
+
+    <nav>
+      <a href="#home">Home</a>
+      <a href="#services">Services</a>
+      <a href="#booking">Book Service</a>
+      <a href="#contact">Contact</a>
+    </nav>
+
+    <a href="#booking" class="nav-btn">Get Service ↗</a>
+  </header>
+
+  <!-- HERO -->
+  <main>
+    <section class="hero" id="home">
+      <div class="hero-content">
+        <div class="eyebrow">
+          <span class="live-dot"></span>
+          YOUR TRUSTED SECURITY PARTNER
+        </div>
+
+        <h1>Your Security.<br>
+          <span>Our Responsibility.</span>
+        </h1>
+
+        <p>
+          Professional CCTV installation, camera repair,
+          wiring and complete security solutions at your doorstep.
+        </p>
+
+        <div class="hero-buttons">
+          <a href="#booking" class="primary-btn">Book a Service ↗</a>
+          <a href="tel:7889153159" class="secondary-btn">Call Owner</a>
+        </div>
+
+        <div class="hero-info">
+          <div><strong>01</strong><span>Installation</span></div>
+          <div><strong>02</strong><span>Repair</span></div>
+          <div><strong>03</strong><span>Maintenance</span></div>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <div class="camera-glow"></div>
+        <div class="camera-card">
+          <div class="camera-top">
+            <span>SECURITY SYSTEM</span>
+            <span class="recording">● LIVE</span>
+          </div>
+
+          <div class="camera-art">
+            <div class="camera-body">
+              <div class="camera-lens"></div>
+              <div class="camera-shine"></div>
+            </div>
+            <div class="camera-arm"></div>
+            <div class="camera-base"></div>
+          </div>
+
+          <div class="camera-bottom">
+            <span>SMART SURVEILLANCE</span>
+            <span>24 / 7</span>
+          </div>
+        </div>
+        <div class="visual-caption">PROTECT WHAT MATTERS.</div>
+      </div>
+    </section>
+
+    <!-- SERVICES -->
+    <section class="section services" id="services">
+      <div class="section-heading">
+        <span class="eyebrow">WHAT WE DO</span>
+        <h2>Complete Security Solutions.</h2>
+        <p>Reliable CCTV solutions for your home, office and business.</p>
+      </div>
+
+      <div class="service-grid">
+
+        <article class="service-card">
+          <div class="service-icon">◉</div>
+          <span class="service-number">01</span>
+          <h3>CCTV Installation</h3>
+          <p>Professional camera fitting and complete installation.</p>
+          <a href="#booking" data-service="CCTV Installation">Book service ↗</a>
+        </article>
+
+        <article class="service-card">
+          <div class="service-icon">⚙</div>
+          <span class="service-number">02</span>
+          <h3>Camera Repair</h3>
+          <p>Technical troubleshooting and CCTV repair services.</p>
+          <a href="#booking" data-service="Camera Repair">Book service ↗</a>
+        </article>
+
+        <article class="service-card">
+          <div class="service-icon">⌁</div>
+          <span class="service-number">03</span>
+          <h3>Wiring & Setup</h3>
+          <p>Camera wiring, DVR/NVR configuration and setup.</p>
+          <a href="#booking" data-service="Wiring & Setup">Book service ↗</a>
+        </article>
+
+        <article class="service-card">
+          <div class="service-icon">◷</div>
+          <span class="service-number">04</span>
+          <h3>Maintenance</h3>
+          <p>Regular system checking and maintenance support.</p>
+          <a href="#booking" data-service="Maintenance">Book service ↗</a>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- BOOKING -->
+    <section class="section booking-section" id="booking">
+      <div class="booking-info">
+        <span class="eyebrow">CUSTOMER SUPPORT</span>
+        <h2>Need a Security Service?</h2>
+        <p>
+          Tell us what you need. Submit your request and
+          connect with our team on WhatsApp.
+        </p>
+
+        <div class="booking-point">✓ Easy service booking</div>
+        <div class="booking-point">✓ Direct WhatsApp contact</div>
+        <div class="booking-point">✓ Request tracking by our team</div>
+      </div>
+
+      <form id="bookingForm" class="booking-form">
+
+        <h3>Book Your Service</h3>
+        <p class="form-subtitle">Fill in your details below.</p>
+
+        <label for="customerName">Full Name</label>
+        <input id="customerName" type="text" placeholder="Enter your name" required maxlength="80">
+
+        <label for="customerPhone">Mobile Number</label>
+        <input id="customerPhone" type="tel" placeholder="10-digit mobile number" pattern="[0-9]{10}" maxlength="10" required>
+
+        <label for="customerAddress">Address / Area</label>
+        <input id="customerAddress" type="text" placeholder="Enter your location" required maxlength="180">
+
+        <label for="serviceType">Select Service</label>
+        <select id="serviceType" required>
+          <option value="">Choose a service</option>
+          <option>CCTV Installation</option>
+          <option>Camera Repair</option>
+          <option>Wiring & Setup</option>
+          <option>DVR / NVR Setup</option>
+          <option>Maintenance</option>
+          <option>Other Enquiry</option>
+        </select>
+
+        <label for="customerMessage">Problem / Requirements</label>
+        <textarea id="customerMessage" rows="4" placeholder="Describe your requirements..." maxlength="1000"></textarea>
+
+        <button type="submit" id="submitBooking" class="primary-btn full-btn">
+          Submit Booking ↗
+        </button>
+
+        <p id="bookingStatus" class="booking-status" role="status"></p>
+
+        <small class="privacy-note">
+          Your details will be used only to respond to your service request.
+        </small>
+      </form>
+    </section>
+
+    <!-- CONTACT -->
+    <section class="section contact-section" id="contact">
+      <div class="section-heading">
+        <span class="eyebrow">GET IN TOUCH</span>
+        <h2>Let's Secure Your Space.</h2>
+        <p>Contact our team for installation and service enquiries.</p>
+      </div>
+
+      <div class="contact-grid">
+        <div class="contact-card">
+          <span class="contact-label">OWNER</span>
+          <h3>Parminder Singh Chawla</h3>
+          <a href="tel:7889153159">+91 7889153159</a>
+          <a class="whatsapp-link" href="https://wa.me/917889153159" target="_blank" rel="noopener">WhatsApp Owner ↗</a>
+        </div>
+
+        <div class="contact-card">
+          <span class="contact-label">MANAGER</span>
+          <h3>Gurpreet Singh Chawla</h3>
+          <a href="tel:6239750615">+91 6239750615</a>
+          <a class="whatsapp-link" href="https://wa.me/916239750615" target="_blank" rel="noopener">WhatsApp Manager ↗</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ADMIN LOGIN -->
+    <section class="admin-entry" id="admin">
+      <div>
+        <span class="eyebrow">BUSINESS MANAGEMENT</span>
+        <h2>Team Access</h2>
+        <p>Authorized team members can manage customer service requests.</p>
+      </div>
+
+      <button class="secondary-btn" id="showAdminLogin">Admin Login ↗</button>
+    </section>
+
+    <!-- ADMIN DASHBOARD -->
+    <section class="admin-dashboard" id="adminDashboard" hidden>
+      <div class="dashboard-heading">
+        <div>
+          <span class="eyebrow">PRIVATE AREA</span>
+          <h2>Service Dashboard</h2>
+        </div>
+        <button class="secondary-btn" id="logoutButton">Log Out</button>
+      </div>
+
+      <div class="dashboard-stats">
+        <div class="stat-card">
+          <span>Total Requests</span>
+          <strong id="totalRequests">0</strong>
+        </div>
+        <div class="stat-card">
+          <span>Pending</span>
+          <strong id="pendingRequests">0</strong>
+        </div>
+        <div class="stat-card">
+          <span>Completed</span>
+          <strong id="completedRequests">0</strong>
+        </div>
+      </div>
+
+      <div class="requests-heading">
+        <h3>Customer Requests</h3>
+        <button class="secondary-btn" id="refreshRequests">Refresh ↻</button>
+      </div>
+
+      <p id="dashboardStatus" class="booking-status" role="status"></p>
+      <div id="requestsList" class="requests-list"></div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <a href="#" class="brand footer-brand">
+      <span class="brand-icon">C</span>
+      <span>CHAWLA <small>SECURITY SYSTEM</small></span>
+    </a>
+
+    <p>© 2026 Chawla Security System. All rights reserved.</p>
+    <a href="#home">Back to top ↑</a>
+  </footer>
+
+  <!-- ADMIN LOGIN MODAL -->
+  <div class="modal" id="loginModal" hidden>
+    <div class="modal-box">
+      <button class="modal-close" id="closeLogin" aria-label="Close">×</button>
+      <span class="eyebrow">AUTHORIZED ACCESS</span>
+      <h2>Admin Login</h2>
+
+      <form id="loginForm">
+        <label for="adminEmail">Admin Email</label>
+        <input type="email" id="adminEmail" placeholder="Enter admin email" required>
+
+        <label for="adminPassword">Password</label>
+        <input type="password" id="adminPassword" placeholder="Enter password" required>
+
+        <button class="primary-btn full-btn" type="submit">Login Securely</button>
+      </form>
+
+      <p id="loginStatus" class="booking-status" role="status"></p>
+    </div>
+  </div>
+
+  <!-- JavaScript -->
+  <script src="script.js"></script>
+
+</body>
+</html>
