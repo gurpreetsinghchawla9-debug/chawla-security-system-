@@ -203,17 +203,24 @@ if (bookingForm) {
 
       // WhatsApp message
       const whatsappMessage =
-        `*NEW BOOKING - CHAWLA SECURITY SYSTEM*\n\n` +
-        `Customer: ${customerName}\n` +
-        `Phone: ${customerPhone}\n` +
-        `Address: ${customerAddress}\n` +
-        `Service: ${serviceType}\n` +
-        `Message: ${customerMessage || "No additional message"}`;
+  `*NEW BOOKING - CHAWLA SECURITY SYSTEM*\n\n` +
+  `Customer: ${customerName}\n` +
+  `Phone: ${customerPhone}\n` +
+  `Address: ${customerAddress}\n` +
+  `Service: ${serviceType}\n` +
+  `Message: ${customerMessage || "No additional message"}`;
 
-      const whatsappURL =
-        `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(whatsappMessage)}`;
+const encodedMessage = encodeURIComponent(whatsappMessage);
 
-      window.open(whatsappURL, "_blank");
+window.open(
+  `https://wa.me/917889153159?text=${encodedMessage}`,
+  "_blank"
+);
+
+window.open(
+  `https://wa.me/916239750615?text=${encodedMessage}`,
+  "_blank"
+);
 
       bookingForm.reset();
 
