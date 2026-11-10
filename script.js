@@ -9,7 +9,10 @@ const SUPABASE_URL = "https://gqefwgxiqwhrrtnjzkak.supabase.co";
 const SUPABASE_ANON_KEY =
   "sb_publishable_mEf7EL4FPOu3sHrbkL48fA_Q2fHCHS7";
 
-const WHATSAPP_NUMBER = "916239750615";
+const WHATSAPP_NUMBERS = [
+  "917889153159", // Papa
+  "916239750615"  // Gurpreet
+];
 
 
 // ==========================================
