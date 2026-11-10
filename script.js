@@ -1,4 +1,9 @@
 
+// ==========================================
+// CHAWLA SECURITY SYSTEM
+// Supabase Configuration
+// ==========================================
+
 const SUPABASE_URL = "https://gqefwgxiqwhrrtnjzkak.supabase.co";
 
 const SUPABASE_ANON_KEY =
@@ -6,13 +11,21 @@ const SUPABASE_ANON_KEY =
 
 const WHATSAPP_NUMBER = "916239750615";
 
-// Connect Supabase
+
+// ==========================================
+// CONNECT SUPABASE
+// ==========================================
+
 const db = window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_ANON_KEY
 );
 
-// HTML elements
+
+// ==========================================
+// HTML ELEMENTS
+// ==========================================
+
 const bookingForm = document.getElementById("bookingForm");
 const bookingStatus = document.getElementById("bookingStatus");
 const submitBooking = document.getElementById("submitBooking");
@@ -38,7 +51,10 @@ const requestsList = document.getElementById("requestsList");
 const dashboardStatus = document.getElementById("dashboardStatus");
 
 
-// Show messages
+// ==========================================
+// MESSAGE FUNCTION
+// ==========================================
+
 function showMessage(element, message, type = "success") {
   if (!element) return;
 
@@ -47,23 +63,22 @@ function showMessage(element, message, type = "success") {
 }
 
 
-// Open admin login
-if (showAdminLogin) {
+// ==========================================
+// ADMIN LOGIN MODAL
+// ==========================================
+
+if (showAdminLogin && loginModal) {
   showAdminLogin.addEventListener("click", () => {
     loginModal.style.display = "flex";
   });
 }
 
-
-// Close admin login
-if (closeLogin) {
+if (closeLogin && loginModal) {
   closeLogin.addEventListener("click", () => {
     loginModal.style.display = "none";
   });
 }
 
-
-// Close modal when clicking outside
 if (loginModal) {
   loginModal.addEventListener("click", (event) => {
     if (event.target === loginModal) {
@@ -73,14 +88,16 @@ if (loginModal) {
 }
 
 
-// Service selection from service cards
+// ==========================================
+// SERVICE SELECTION
+// ==========================================
+
 document.querySelectorAll("[data-service]").forEach((button) => {
   button.addEventListener("click", () => {
-    const serviceType = button.dataset.service;
     const serviceSelect = document.getElementById("serviceType");
 
     if (serviceSelect) {
-      serviceSelect.value = serviceType;
+      serviceSelect.value = button.dataset.service;
     }
 
     bookingForm?.scrollIntoView({
@@ -90,7 +107,10 @@ document.querySelectorAll("[data-service]").forEach((button) => {
 });
 
 
-// Customer booking submission
+// ==========================================
+// CUSTOMER BOOKING SYSTEM
+// ==========================================
+
 if (bookingForm) {
   bookingForm.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -100,22 +120,45 @@ if (bookingForm) {
       submitBooking.textContent = "Submitting...";
     }
 
-    showMessage(bookingStatus, "Please wait, submitting your request...");
+    showMessage(
+      bookingStatus,
+      "Submitting your booking request..."
+    );
 
     const customerName =
-      document.getElementById("customerName").value.trim();
+      document.getElementById("customerName")?.value.trim();
 
     const customerPhone =
-      document.getElementById("customerPhone").value.trim();
+      document.getElementById("customerPhone")?.value.trim();
 
     const customerAddress =
-      document.getElementById("customerAddress").value.trim();
+      document.getElementById("customerAddress")?.value.trim();
 
     const serviceType =
-      document.getElementById("serviceType").value;
+      document.getElementById("serviceType")?.value;
 
     const customerMessage =
-      document.getElementById("customerMessage").value.trim();
+      document.getElementById("customerMessage")?.value.trim() || "";
+
+    if (
+      !customerName ||
+      !customerPhone ||
+      !customerAddress ||
+      !serviceType
+    ) {
+      showMessage(
+        bookingStatus,
+        "Please fill all required fields.",
+        "error"
+      );
+
+      if (submitBooking) {
+        submitBooking.disabled = false;
+        submitBooking.textContent = "Submit Request";
+      }
+
+      return;
+    }
 
     if (!/^[0-9]{10}$/.test(customerPhone)) {
       showMessage(
@@ -141,40 +184,42 @@ if (bookingForm) {
     };
 
     try {
-      const { data, error } = await db
+      // FIXED: INSERT ONLY - NO SELECT
+      const { error } = await db
         .from("service_requests")
-        .insert([bookingData])
-        .select();
+        .insert([bookingData]);
 
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
 
       showMessage(
         bookingStatus,
-        "Your booking request has been submitted successfully!"
+        "Booking submitted successfully! Opening WhatsApp..."
       );
 
-      // WhatsApp booking message
+      // WhatsApp message
       const whatsappMessage =
-        `*NEW BOOKING - CHAWLA SECURITY SYSTEM*%0A%0A` +
-        `Customer: ${customerName}%0A` +
-        `Phone: ${customerPhone}%0A` +
-        `Address: ${customerAddress}%0A` +
-        `Service: ${serviceType}%0A` +
+        `*NEW BOOKING - CHAWLA SECURITY SYSTEM*\n\n` +
+        `Customer: ${customerName}\n` +
+        `Phone: ${customerPhone}\n` +
+        `Address: ${customerAddress}\n` +
+        `Service: ${serviceType}\n` +
         `Message: ${customerMessage || "No additional message"}`;
 
       const whatsappURL =
-        `https://wa.me/${WHATSAPP_NUMBER}?text=${whatsappMessage}`;
+        `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(whatsappMessage)}`;
 
       window.open(whatsappURL, "_blank");
 
       bookingForm.reset();
 
     } catch (error) {
-      console.error("Booking error:", error);
+      console.error("Booking submission error:", error);
 
       showMessage(
         bookingStatus,
-        "Booking failed. Please try again or contact us on WhatsApp.",
+        "Booking failed: " + (error.message || "Please try again."),
         "error"
       );
 
@@ -188,7 +233,10 @@ if (bookingForm) {
 }
 
 
-// Admin login
+// ==========================================
+// ADMIN LOGIN
+// ==========================================
+
 if (loginForm) {
   loginForm.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -199,22 +247,22 @@ if (loginForm) {
     const password = adminPassword.value;
 
     try {
-      const { data, error } = await db.auth.signInWithPassword({
-        email: email,
-        password: password
+      const { error } = await db.auth.signInWithPassword({
+        email,
+        password
       });
 
       if (error) throw error;
 
-      showMessage(loginStatus, "Login successful!");
-
       loginModal.style.display = "none";
       loginForm.reset();
+
+      showMessage(loginStatus, "Login successful!");
 
       await showDashboard();
 
     } catch (error) {
-      console.error("Login error:", error);
+      console.error("Admin login error:", error);
 
       showMessage(
         loginStatus,
@@ -226,7 +274,10 @@ if (loginForm) {
 }
 
 
-// Show admin dashboard
+// ==========================================
+// ADMIN DASHBOARD
+// ==========================================
+
 async function showDashboard() {
   if (adminDashboard) {
     adminDashboard.hidden = false;
@@ -241,7 +292,6 @@ async function showDashboard() {
 }
 
 
-// Hide dashboard
 function hideDashboard() {
   if (adminDashboard) {
     adminDashboard.hidden = true;
@@ -250,11 +300,14 @@ function hideDashboard() {
 }
 
 
-// Load customer booking requests
+// ==========================================
+// LOAD CUSTOMER BOOKINGS
+// ==========================================
+
 async function loadRequests() {
   if (!requestsList) return;
 
-  showMessage(dashboardStatus, "Loading customer requests...");
+  showMessage(dashboardStatus, "Loading requests...");
 
   requestsList.replaceChildren();
 
@@ -268,7 +321,6 @@ async function loadRequests() {
 
     const allRequests = requests || [];
 
-    // Dashboard statistics
     if (totalRequests) {
       totalRequests.textContent = allRequests.length;
     }
@@ -286,13 +338,13 @@ async function loadRequests() {
     if (allRequests.length === 0) {
       const emptyMessage = document.createElement("p");
       emptyMessage.textContent = "No booking requests found yet.";
+
       requestsList.appendChild(emptyMessage);
 
-      showMessage(dashboardStatus, "Dashboard is up to date.");
+      showMessage(dashboardStatus, "No bookings found.");
       return;
     }
 
-    // Display requests
     allRequests.forEach((request) => {
       const card = document.createElement("div");
       card.className = "request-card";
@@ -359,7 +411,7 @@ async function loadRequests() {
 
           showMessage(
             dashboardStatus,
-            "Unable to update booking status.",
+            "Unable to update status: " + error.message,
             "error"
           );
 
@@ -387,61 +439,80 @@ async function loadRequests() {
     showMessage(dashboardStatus, "Dashboard is up to date.");
 
   } catch (error) {
-    console.error("Dashboard error:", error);
+    console.error("Dashboard loading error:", error);
 
     showMessage(
       dashboardStatus,
-      "Unable to load requests. Please check your admin login.",
+      "Unable to load bookings: " + error.message,
       "error"
     );
   }
 }
 
 
-// Refresh dashboard
+// ==========================================
+// REFRESH BOOKINGS
+// ==========================================
+
 if (refreshRequests) {
   refreshRequests.addEventListener("click", loadRequests);
 }
 
 
-// Admin logout
+// ==========================================
+// ADMIN LOGOUT
+// ==========================================
+
 if (logoutButton) {
   logoutButton.addEventListener("click", async () => {
     const { error } = await db.auth.signOut();
 
     if (error) {
-      console.error("Logout error:", error);
-      showMessage(dashboardStatus, "Logout failed.", "error");
+      showMessage(
+        dashboardStatus,
+        "Logout failed: " + error.message,
+        "error"
+      );
       return;
     }
 
     hideDashboard();
 
-    showMessage(loginStatus, "You have logged out successfully.");
+    showMessage(
+      loginStatus,
+      "You have logged out successfully."
+    );
   });
 }
 
 
-// Restore admin session after page refresh
+// ==========================================
+// RESTORE ADMIN SESSION
+// ==========================================
+
 async function restoreAdminSession() {
-  const { data, error } = await db.auth.getSession();
+  try {
+    const { data, error } = await db.auth.getSession();
 
-  if (error) {
+    if (error) throw error;
+
+    if (data.session) {
+      await showDashboard();
+    } else {
+      hideDashboard();
+    }
+
+  } catch (error) {
     console.error("Session error:", error);
-    return;
-  }
-
-  if (data.session) {
-    await showDashboard();
-  } else {
-    hideDashboard();
   }
 }
 
 
-// Start website
-document.addEventListener("DOMContentLoaded", () => {
-  restoreAdminSession();
-});
+// ==========================================
+// INITIALIZE WEBSITE
+// ==========================================
+
+restoreAdminSession();
+
 
 
